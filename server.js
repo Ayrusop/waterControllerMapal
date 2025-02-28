@@ -8,7 +8,7 @@ const XLSX = require('xlsx');
 const cors = require('cors');
 const moment = require("moment");
 // Serial port configuration
-const serialPortPath = 'COM4';
+const serialPortPath = '/dev/ttyUSB0';
 const baudRate = 9600;
 const httpPort = 5000;
 const wsPort = 8080;
