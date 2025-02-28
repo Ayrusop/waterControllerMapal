@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Display</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    #output {
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      width: 100%;
+      height: 200px;
+      overflow-y: scroll;
+      display: none; /* Hidden until password is validated */
+    }
+    #controls {
+      margin-top: 20px;
+      display: none; /* Hidden until password is validated */
+    }
+  </style>
+</head>
+<body>
+  <h1>Tank Levels</h1>
+  
+  <!-- Password Input Section -->
+  <div id="passwordSection">
+    <input type="password" id="passwordInput" placeholder="Enter Password" />
+    <button id="validatePassword">Submit</button>
+  </div>
+  
+  <!-- Serial Port and Baud Rate Input Section -->
+  <div id="connectionSettings" style="display:none;">
+    <label for="serialPort">Serial Port:</label>
+    <input type="text" id="serialPort" placeholder="Enter COM port (e.g., COM4)" />
+    <label for="baudRate">Baud Rate:</label>
+    <input type="text" id="baudRate" placeholder="Enter baud rate (e.g., 9600)" />
+  </div>
+  
+  <!-- Data Output Section -->
+  <div id="output">Click "Connect" to start receiving tank data</div>
+  
+  <!-- Connect/Disconnect Buttons -->
+  <div id="controls">
+    <button id="connectButton">Connect</button>
+    <button id="disconnectButton" disabled>Disconnect</button>
+  </div>
+
+  <h2>Send Data</h2>
+  <input type="text" id="inputData" placeholder="Enter data to send" disabled />
+  <button id="sendButton" disabled>Send</button>
+
+  <script>
+    let ws;
+    const correctPassword = '123';  // Set your correct password here
+
+    // Validate password and show connection settings
+    document.getElementById('validatePassword').addEventListener('click', function() {
+      const enteredPassword = document.getElementById('passwordInput').value;
+      if (enteredPassword === correctPassword) {
+        document.getElementById('passwordSection').style.display = 'none';  // Hide password section
+        document.getElementById('connectionSettings').style.display = 'block';  // Show connection settings
+        document.getElementById('controls').style.display = 'block';  // Show connect/disconnect buttons
+        document.getElementById('output').style.display = 'block';  // Show output section
+      } else {
+        alert('Incorrect password. Please try again.');
+      }
+    });
+
+    // Function to parse the raw data and extract T1 and T2 values
+    function parseAndDisplayData(rawData) {
+      // Regular expression to extract T1 and T2 values
+      const regex = /\(T1:(\d+)\sT2:(\d+)\)/;
+      const match = rawData.match(regex);
+
+      if (match) {
+        const t1Value = match[1];  // Extract T1 value
+        const t2Value = match[2];  // Extract T2 value
+
+        // Update the output display with tank percentages
+        const output = document.getElementById('output');
+        output.innerHTML = `Tank 1: ${t1Value}% | Tank 2: ${t2Value}%`;  // Display the values as percentages
+      }
+    }
+
+    // Connect to WebSocket server
+    document.getElementById('connectButton').addEventListener('click', function() {
+      const serialPort = document.getElementById('serialPort').value;
+      const baudRate = document.getElementById('baudRate').value;
+
+      if (!serialPort || !baudRate) {
+        alert('Please enter both serial port and baud rate');
+        return;
+      }
+
+      ws = new WebSocket('ws://localhost:8080');
+  
+      ws.onopen = function() {
+        // Send serial port and baud rate to the server
+        ws.send(JSON.stringify({ serialPort, baudRate }));
+        
+        document.getElementById('output').innerHTML = 'Connected to device';
+        document.getElementById('connectButton').disabled = true;
+        document.getElementById('disconnectButton').disabled = false;
+        document.getElementById('inputData').disabled = false;
+        document.getElementById('sendButton').disabled = false;
+      };
+  
+      ws.onmessage = function(event) {
+        const rawData = event.data;
+        parseAndDisplayData(rawData);  // Process and display the data directly
+      };
+  
+      ws.onerror = function(error) {
+        console.error('WebSocket error:', error);
+      };
+  
+      ws.onclose = function() {
+        document.getElementById('output').innerHTML = 'Disconnected from device';
+        document.getElementById('connectButton').disabled = false;
+        document.getElementById('disconnectButton').disabled = true;
+        document.getElementById('inputData').disabled = true;
+        document.getElementById('sendButton').disabled = true;
+      };
+    });
+  
+    // Disconnect from WebSocket
+    document.getElementById('disconnectButton').addEventListener('click', function() {
+      if (ws) {
+        ws.close();
+      }
+    });
+  
+    // Send data to the device
+    document.getElementById('sendButton').addEventListener('click', function() {
+      const inputData = document.getElementById('inputData').value;
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(inputData);
+      }
+    });
+  </script>
+</body>
+</html>
