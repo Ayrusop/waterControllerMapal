@@ -33,12 +33,12 @@ const Rainwater = () => {
 
                     setTankData({
                         tankA: {
-                            percentage: data.Tank1?.["percentage (%)"] || 0,
+                            percentage: data.Tank1?.percentage || 0,
                             liters: data.Tank1?.liters || 0,
                             lastHarvesting: lastHarvestingTank1,
                         },
                         tankB: {
-                            percentage: data.Tank2?.["percentage (%)"] || 0,
+                            percentage: data.Tank2?.percentage || 0,
                             liters: data.Tank2?.liters || 0,
                             lastHarvesting: lastHarvestingTank2,
                         },
@@ -74,27 +74,37 @@ const Rainwater = () => {
 
             if (response.status === 200) {
                 const data = response.data;
+                // console.log("Data received for last harvesting:", data);
+
                 if (data.length > 0) {
                     const firstEntry = data[0];
                     const lastEntry = data[data.length - 1];
-                    const firstLiters = firstEntry[3];
-                    const lastLiters = lastEntry[3];
+
+                    // Ensure liters are numeric before calculation
+                    const firstLiters = parseFloat(firstEntry.liters);
+                    const lastLiters = parseFloat(lastEntry.liters);
+
+                    // Calculate the difference
                     const lastHarvesting = lastLiters - firstLiters;
 
                     if (lastHarvesting >= 5000) {
                         setLastHarvestingDate(moment().format("YYYY-MM-DD"));
                     }
+
+                    // console.log(`Last harvesting difference: ${lastHarvesting} Liters`);
                     return lastHarvesting;
                 }
             }
         } catch (error) {
             console.error("Error fetching data range:", error);
         }
+
         return 0;
     };
 
+
     const openDownloadModal = (tank) => {
-        console.log("Opening modal for tank:", tank);
+        // console.log("Opening modal for tank:", tank);
         setSelectedTank(tank);
         setModalOpen(true);
     };
@@ -132,26 +142,30 @@ const Rainwater = () => {
                     const headers = ["Time", "Percentage", "Liters"];
                     const sheetData = data.map((entry) => {
                         // Ensure that data aligns correctly regardless of whether it's a single tank or combined
-                        if (entry.length === 3) {
-                            return {
-                                Time: entry[0],
-                                Percentage: entry[1],
-                                Liters: entry[2]
-                            };
-                        } else {
-                            return {
-                                Time: entry[0],
-                                Percentage: entry[2],
-                                Liters: entry[3]
-                            };
+                        let time = moment(entry[0]).format("YYYY-MM-DD HH:mm"); // Formatting the timestamp into a readable format
+                        let percentage = entry.percentage;
+                        let liters = entry.liters;
+
+                        if (entry.length > 3) {
+                            // If there are additional columns, adjust as needed
+                            percentage = entry.entry.percentage;
+                            liters = entry.entry.percentage;
                         }
+
+                        return {
+                            Time: time,
+                            Percentage: percentage,
+                            Liters: liters
+                        };
                     });
 
+                    // Create worksheet
                     const worksheet = XLSX.utils.json_to_sheet(sheetData, { header: headers });
                     const workbook = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(workbook, worksheet, "Tank Data");
 
-                    XLSX.writeFile(workbook, `${selectedTank}_Data.xlsx`);
+                    // Generate and download the Excel file
+                    XLSX.writeFile(workbook, `${mappedTank}_Data_${formattedFrom}_${formattedTo}.xlsx`);
                 } else {
                     console.error("No data available for the selected range.");
                 }
@@ -162,6 +176,7 @@ const Rainwater = () => {
             console.error("Error fetching tank data:", error);
         }
     };
+
 
     const getWaterLevel = (percentage) => {
         if (percentage >= 75) {
@@ -202,11 +217,12 @@ const Rainwater = () => {
                             c -10,0 -15,5 -25,5 c -10,0 -15,-5 -25,-5`} />
                         </svg>
                     </div>
-                    <div className="label">{tank.liters} Liters</div>
+                    <div className="label" style={{bottom:`${tank.percentage- 10}%`}}>{tank.liters} Liters</div>
                 </div>
                 <p className="justify-center mt-2 text-green-500 text-2xl">
                     Last harvesting - <span>{tank.lastHarvesting} Liters</span>
                 </p>
+                
                 {lastHarvestingDate && (
                     <p className="justify-center mt-2 text-green-500 text-2xl">
                         Last above 5000 liters harvested data - <span>{lastHarvestingDate}</span>

@@ -22,8 +22,9 @@ const FlowDischarge = () => {
         try {
             const response = await axios.get('http://localhost:5000/get-latest-data');
             if (response.status === 200) {
-                setFlowData(response.data.Flow);
+                setFlowData(response.data);
                 calculateCumulativeFlows();
+                // console.log(response.data);
             }
         } catch (error) {
             console.error('Error fetching flow data:', error);
@@ -31,25 +32,41 @@ const FlowDischarge = () => {
     };
 
     const calculateCumulativeFlows = async () => {
-
         try {
             const todayStart = moment().startOf('day').format("YYYY-MM-DD HH:mm");
             const monthStart = moment().startOf('month').format("YYYY-MM-DD HH:mm");
             const yearStart = moment().startOf('year').format("YYYY-MM-DD HH:mm");
 
             const [todayResponse, monthResponse, yearResponse] = await Promise.all([
-                axios.get('http://localhost:5000/get-data-range-flow', { params: { from: todayStart, to: moment().format("YYYY-MM-DD HH:mm"), tank: "Flow" } }),
-                axios.get('http://localhost:5000/get-data-range-flow', { params: { from: monthStart, to: moment().format("YYYY-MM-DD HH:mm"), tank: "Flow" } }),
-                axios.get('http://localhost:5000/get-data-range-flow', { params: { from: yearStart, to: moment().format("YYYY-MM-DD HH:mm"), tank: "Flow" } })
+                axios.get('http://localhost:5000/get-data-range', { params: { from: todayStart, to: moment().format("YYYY-MM-DD HH:mm"), tank: "Flow" } }),
+                axios.get('http://localhost:5000/get-data-range', { params: { from: monthStart, to: moment().format("YYYY-MM-DD HH:mm"), tank: "Flow" } }),
+                axios.get('http://localhost:5000/get-data-range', { params: { from: yearStart, to: moment().format("YYYY-MM-DD HH:mm"), tank: "Flow" } })
             ]);
 
-            if (todayResponse.data.length > 0) setTodayFlow(todayResponse.data[todayResponse.data.length - 1][2] - todayResponse.data[0][2]);
-            if (monthResponse.data.length > 0) setMonthFlow(monthResponse.data[monthResponse.data.length - 1][2] - monthResponse.data[0][2]);
-            if (yearResponse.data.length > 0) setYearFlow(yearResponse.data[yearResponse.data.length - 1][2] - yearResponse.data[0][2]);
+            // Calculate cumulative flows
+            if (todayResponse.data.length > 0) {
+                const todayData = todayResponse.data;
+                const todayFlow = todayData[todayData.length - 1].totalFlow - todayData[0].totalFlow;
+                setTodayFlow(todayFlow);
+            }
+
+            if (monthResponse.data.length > 0) {
+                const monthData = monthResponse.data;
+                const monthFlow = monthData[monthData.length - 1].totalFlow - monthData[0].totalFlow;
+                setMonthFlow(monthFlow);
+            }
+
+            if (yearResponse.data.length > 0) {
+                const yearData = yearResponse.data;
+                const yearFlow = yearData[yearData.length - 1].totalFlow - yearData[0].totalFlow;
+                setYearFlow(yearFlow);
+            }
+
         } catch (error) {
             console.error('Error calculating cumulative flows:', error);
         }
     };
+
     const tableStyle = {
         width: '75%',
         borderCollapse: 'collapse',
@@ -72,7 +89,7 @@ const FlowDischarge = () => {
     };
     const downloadFlowData = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/get-data-range-flow', {
+            const response = await axios.get('http://localhost:5000/get-data-range', {
                 params: {
                     from: moment(fromDate).format("YYYY-MM-DD HH:mm"),
                     to: moment(toDate).format("YYYY-MM-DD HH:mm"),
@@ -83,9 +100,9 @@ const FlowDischarge = () => {
             if (response.status === 200 && response.data.length > 0) {
                 const headers = ["Time", "Actual Flow Rate", "Total Cumulative Flow"];
                 const sheetData = response.data.map(entry => ({
-                    Time: entry[0],
-                    "Actual Flow Rate": entry[1],
-                    "Total Cumulative Flow": entry[2],
+                    Time: entry.timestamp,
+                    "Actual Flow Rate": entry.actualFlow,
+                    "Total Cumulative Flow": entry.totalFlow,
                 }));
 
                 const worksheet = XLSX.utils.json_to_sheet(sheetData, { header: headers });
@@ -117,8 +134,8 @@ const FlowDischarge = () => {
                 <tbody>
                     <tr>
                         <td style={tdStyle}><b>Rain Water Discharge</b></td>
-                        <td style={tdStyle}><b>{flowData?.["actual flow"] || 'N/A'} m³/h</b></td>
-                        <td style={tdStyle}><b>{flowData?.["total flow"] || 'N/A'} m³</b></td>
+                        <td style={tdStyle}><b>{flowData?.Flow.actualFlow} m³/h</b></td>
+                        <td style={tdStyle}><b>{flowData?.Flow.totalFlow} m³</b></td>
                         <td style={tdStyle}><b>{todayFlow.toFixed(2)} m³</b></td>
                         <td style={tdStyle}><b>{monthFlow.toFixed(2)} m³</b></td>
                         <td style={tdStyle}><b>{yearFlow.toFixed(2)} m³</b></td>

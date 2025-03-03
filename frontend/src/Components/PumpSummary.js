@@ -25,11 +25,11 @@ const PumpSummary = () => {
                     const data = response.data;
                     setPumpData({
                         pumpA: {
-                            motorStatus: data.Tank1?.["motor status"] || 'MF',
+                            motorStatus: data.Tank1?.["motorStatus"] || 'MF',
                             mode: data.Tank1?.mode || 'A',
                         },
                         pumpB: {
-                            motorStatus: data.Tank2?.["motor status"] || 'MF',
+                            motorStatus: data.Tank2?.["motorStatus"] || 'MF',
                             mode: data.Tank2?.mode || 'A',
                         },
                     });
@@ -88,9 +88,9 @@ const PumpSummary = () => {
 
                 if (data.length > 0) {
                     const sheetData = data.map((entry) => ({
-                        Timestamp: entry[0],
-                        "Motor Status": entry[1] === 'MF' ? 'Motor OFF' : 'Motor ON',
-                        Mode: entry[2] === 'A' ? 'Automatic' : 'Manual',
+                        Timestamp: entry.timestamp,
+                        "Motor Status": entry.motorStatus === 'MF' ? 'Motor OFF' : 'Motor ON',
+                        Mode: entry.mode === 'A' ? 'Automatic' : 'Manual',
                     }));
 
                     const headers = ["Timestamp", "Motor Status", "Mode"];

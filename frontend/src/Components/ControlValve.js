@@ -82,9 +82,9 @@ const ControlValve = () => {
 
                 if (data.length > 0) {
                     const sheetData = data.map((entry) => ({
-                        Timestamp: entry[0],
-                        Status: entry[1].endsWith('N') ? 'Valve ON' : 'Valve OFF',
-                        Mode: entry[2] === 'A' ? 'Automatic' : 'Manual',
+                        Timestamp: entry.timestamp,
+                        Status: entry.status.endsWith('N') ? 'Valve ON' : 'Valve OFF',
+                        Mode: entry.mode === 'A' ? 'Automatic' : 'Manual',
                     }));
 
                     const headers = ["Timestamp", "Status", "Mode"];
