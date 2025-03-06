@@ -419,6 +419,6 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'build', 'index.html'));
 });
 
-app.listen(httpPort, () => {
+app.listen(httpPort,'0.0.0.0', () => {
   console.log(`HTTP server running on http://localhost:${httpPort}`);
 });
