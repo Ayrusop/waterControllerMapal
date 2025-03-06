@@ -13,14 +13,14 @@ const FlowDischarge = () => {
     const [fromDate, setFromDate] = useState(null);
     const [toDate, setToDate] = useState(null);
     const [showModal, setShowModal] = useState(false);
-
+    const BASE_URL = `http://${window.location.hostname}:5000`;
     useEffect(() => {
         fetchFlowData();
     }, []);
 
     const fetchFlowData = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/get-latest-data');
+            const response = await axios.get(`${BASE_URL}/get-latest-data`);
             if (response.status === 200) {
                 setFlowData(response.data);
                 calculateCumulativeFlows();
@@ -38,9 +38,9 @@ const FlowDischarge = () => {
             const yearStart = moment().startOf('year').format("YYYY-MM-DD HH:mm");
 
             const [todayResponse, monthResponse, yearResponse] = await Promise.all([
-                axios.get('http://localhost:5000/get-data-range', { params: { from: todayStart, to: moment().format("YYYY-MM-DD HH:mm"), tank: "Flow" } }),
-                axios.get('http://localhost:5000/get-data-range', { params: { from: monthStart, to: moment().format("YYYY-MM-DD HH:mm"), tank: "Flow" } }),
-                axios.get('http://localhost:5000/get-data-range', { params: { from: yearStart, to: moment().format("YYYY-MM-DD HH:mm"), tank: "Flow" } })
+                axios.get(`${BASE_URL}/get-data-range`, { params: { from: todayStart, to: moment().format("YYYY-MM-DD HH:mm"), tank: "Flow" } }),
+                axios.get(`${BASE_URL}/get-data-range`, { params: { from: monthStart, to: moment().format("YYYY-MM-DD HH:mm"), tank: "Flow" } }),
+                axios.get(`${BASE_URL}/get-data-range`, { params: { from: yearStart, to: moment().format("YYYY-MM-DD HH:mm"), tank: "Flow" } })
             ]);
 
             // Calculate cumulative flows
@@ -89,7 +89,7 @@ const FlowDischarge = () => {
     };
     const downloadFlowData = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/get-data-range', {
+            const response = await axios.get(`${BASE_URL}/get-data-range`, {
                 params: {
                     from: moment(fromDate).format("YYYY-MM-DD HH:mm"),
                     to: moment(toDate).format("YYYY-MM-DD HH:mm"),

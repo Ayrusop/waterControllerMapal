@@ -211,7 +211,6 @@ app.get('/get-latest-data', (req, res) => {
     res.status(500).json({ error: 'Failed to fetch data' });
   }
 });
-
 // get range data
 app.get("/get-data-range", (req, res) => {
   try {
@@ -420,5 +419,5 @@ app.get('*', (req, res) => {
 });
 
 app.listen(httpPort,'0.0.0.0', () => {
-  console.log(`HTTP server running on http://localhost:${httpPort}`);
+  console.log(`HTTP server running on ${httpPort}`);
 });

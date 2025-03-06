@@ -15,12 +15,12 @@ const PumpSummary = () => {
     const [selectedPump, setSelectedPump] = useState(null);
     const [fromDate, setFromDate] = useState(new Date());
     const [toDate, setToDate] = useState(new Date());
-
+    const BASE_URL = `http://${window.location.hostname}:5000`;
     useEffect(() => {
         // Fetch data from API
         const fetchData = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/get-latest-data');
+                const response = await axios.get(`${BASE_URL}/get-latest-data`);
                 if (response.status === 200) {
                     const data = response.data;
                     setPumpData({
@@ -45,7 +45,7 @@ const PumpSummary = () => {
     }, []);
     const sendCommand = async (pump, command) => {
         try {
-            await axios.post('http://localhost:5000/send-command', {
+            await axios.post(`${BASE_URL}/send-command`, {
                 pump,
                 command,
             });
@@ -74,7 +74,7 @@ const PumpSummary = () => {
             const formattedFrom = moment(fromDate).format("YYYY-MM-DD HH:mm");
             const formattedTo = moment(toDate).format("YYYY-MM-DD HH:mm");
 
-            const response = await axios.get('http://localhost:5000/get-data-range', {
+            const response = await axios.get(`${BASE_URL}/get-data-range`, {
                 params: {
                     from: formattedFrom,
                     to: formattedTo,

@@ -12,7 +12,7 @@ const Rainwater = () => {
         tankB: { percentage: 0, liters: 0, lastHarvesting: 0 },
         total: { percentage: 0, liters: 0, lastHarvesting: 0 },
     });
-
+    const BASE_URL = `http://${window.location.hostname}:5000`;
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedTank, setSelectedTank] = useState(null);
     const [fromDate, setFromDate] = useState(new Date());
@@ -22,7 +22,7 @@ const Rainwater = () => {
         // Fetch data from API
         const fetchData = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/get-latest-data');
+                const response = await axios.get(`${BASE_URL}/get-latest-data`);
                 if (response.status === 200) {
                     const data = response.data;
 
@@ -64,7 +64,7 @@ const Rainwater = () => {
         const formattedTo = moment().format("YYYY-MM-DD HH:mm");
 
         try {
-            const response = await axios.get('http://localhost:5000/get-data-range', {
+            const response = await axios.get(`${BASE_URL}/get-data-range`, {
                 params: {
                     from: formattedFrom,
                     to: formattedTo,
@@ -125,7 +125,7 @@ const Rainwater = () => {
             const formattedFrom = moment(fromDate).format("YYYY-MM-DD HH:mm");
             const formattedTo = moment(toDate).format("YYYY-MM-DD HH:mm");
 
-            const response = await axios.get('http://localhost:5000/get-data-range', {
+            const response = await axios.get(`${BASE_URL}/get-data-range`, {
                 params: {
                     from: formattedFrom,
                     to: formattedTo,

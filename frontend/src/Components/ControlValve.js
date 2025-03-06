@@ -11,7 +11,7 @@ const ControlValve = () => {
         borewell: { status: 'BN' },
         rainwaterDrain: { status: 'RN' },
     });
-
+    const BASE_URL = `http://${window.location.hostname}:5000`;
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedValve, setSelectedValve] = useState(null);
     const [fromDate, setFromDate] = useState(new Date());
@@ -21,7 +21,7 @@ const ControlValve = () => {
         // Fetch data from API
         const fetchData = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/get-latest-data');
+                const response = await axios.get(`${BASE_URL}/get-latest-data`);
                 if (response.status === 200) {
                     const data = response.data;
                     setValveData({
@@ -68,7 +68,7 @@ const ControlValve = () => {
             const formattedFrom = moment(fromDate).format("YYYY-MM-DD HH:mm");
             const formattedTo = moment(toDate).format("YYYY-MM-DD HH:mm");
 
-            const response = await axios.get('http://localhost:5000/get-data-range', {
+            const response = await axios.get(`${BASE_URL}/get-latest-data`, {
                 params: {
                     from: formattedFrom,
                     to: formattedTo,
@@ -105,7 +105,7 @@ const ControlValve = () => {
     };
     const sendCommand = async (valve, command) => {
         try {
-            await axios.post('http://localhost:5000/send-command', {
+            await axios.post(`${BASE_URL}/send-command`, {
                 valve,
                 command,
             });

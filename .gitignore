@@ -1,6 +1,6 @@
 # Ignore node_modules folder
 node_modules/
-
+frontend/node_modules/
 
 # You can add other directories or files you want to ignore here
 *.log
