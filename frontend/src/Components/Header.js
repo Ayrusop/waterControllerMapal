@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import logo from '../assets/adhiba-logo.png'
 import avatar from '../assets/mapal-logo.png'
-export default function Header() {
+export default function Header({ auth, onLogout }) {
     return (
         <div className='container bg-white'>
             <header className='flex justify-between px-5 py-5 align-middle'>
@@ -19,6 +19,22 @@ export default function Header() {
                         </Link>
 
                     </div>
+                </div>
+                <div>
+                    <ul className="navbar-nav ms-auto mt-4" >
+                        {
+                            auth ? (
+                                <>
+                                    <li className="nav-item" >
+                                        <button className="btn btn-danger" onClick={onLogout} > Logout </button>
+                                    </li>
+                                </>
+                            ) : (
+                                <li className="nav-item" >
+                                        <Link className="btn btn-primary" to="/login" > Login </Link>
+                                </li>
+                            )}
+                    </ul>
                 </div>
             </header>
         </div>

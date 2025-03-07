@@ -1,37 +1,41 @@
-
+import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import Header from "./Components/Header";
+import Footer from "./Components/Footer";
+import Home from "./Components/Home";
+import Rainwater from "./Components/Rainwater";
+import FlowDischarge from "./Components/FlowDischarge";
+import PumpSummary from "./Components/PumpSummary";
+import ControlValve from "./Components/ControlValve";
+import Login from "./Components/Login";
+import PrivateRoute from "./PrivateRoute";
+import { isAuthenticated, logout } from "./Auth";
+import "react-datepicker/dist/react-datepicker.css";
 import './App.css';
-// import Controls from './Components/Control';
-import Header from './Components/Header';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.js';
-import Home from './Components/Home';
-import Rainwater from './Components/Rainwater';
-import FlowDischarge from './Components/FlowDischarge';
-import PumpSummary from './Components/PumpSummary';
-import ControlValve from './Components/ControlValve';
-import Footer from './Components/Footer';
-import { Fragment } from 'react';
-import { BrowserRouter as Router, Route , Routes } from 'react-router-dom';
-import "react-datepicker/dist/react-datepicker.css";
-
 function App() {
-  return (
-    <Fragment>
-      <Router>
-        <Header />
-        <Routes>
-          <Route path="/" element={<Home/>} />
-          <Route path="/Rainwater" element={<Rainwater/>} />
-          <Route path="/FlowDischarge" element={<FlowDischarge/>} />
-          <Route path="/PumpSummary" element={<PumpSummary/>} />
-          <Route path="/ControlValve" element={<ControlValve/>} />
-        </Routes>
-        <Footer />
-      </Router>
-      {/* <TestDatePicker/> */}
-      
-    </Fragment>
+  const [auth, setAuth] = useState(isAuthenticated());
 
+  useEffect(() => {
+    const checkAuth = () => setAuth(isAuthenticated());
+    window.addEventListener("storage", checkAuth);
+    return () => window.removeEventListener("storage", checkAuth);
+  }, []);
+
+  return (
+    <Router>
+      <Header auth={auth} onLogout={logout} />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login setAuth={setAuth} />} />
+        <Route path="/Rainwater" element={<PrivateRoute component={Rainwater} />} />
+        <Route path="/FlowDischarge" element={<PrivateRoute component={FlowDischarge} />} />
+        <Route path="/PumpSummary" element={<PrivateRoute component={PumpSummary} />} />
+        <Route path="/ControlValve" element={<PrivateRoute component={ControlValve} />} />
+      </Routes>
+      <Footer />
+    </Router>
   );
 }
 
