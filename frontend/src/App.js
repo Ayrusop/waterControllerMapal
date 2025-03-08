@@ -26,6 +26,7 @@ function App() {
   return (
     <Router>
       <Header auth={auth} onLogout={logout} />
+      <Footer />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login setAuth={setAuth} />} />
@@ -34,7 +35,7 @@ function App() {
         <Route path="/PumpSummary" element={<PrivateRoute component={PumpSummary} />} />
         <Route path="/ControlValve" element={<PrivateRoute component={ControlValve} />} />
       </Routes>
-      <Footer />
+     
     </Router>
   );
 }

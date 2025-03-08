@@ -147,31 +147,52 @@ const FlowDischarge = () => {
             </div>
 
             {showModal && (
-                <div className="modal-overlay">
-                    <div className='modal'>
-                        <h2>Select Date and Time</h2>
-                        <label>From:</label>
-                        <div style={{ marginBottom: '10px', border: '1px solid #ccc', borderRadius: '5px' }}>
-                            <DatePicker
-                                selected={fromDate}
-                                onChange={(date) => setFromDate(date)}
-                                showTimeSelect
-                                dateFormat="yyyy-MM-dd HH:mm"
-                                withPortal
-                            />
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-1/3 text-center">
+                        <h2 className="text-2xl font-semibold text-center mb-4">Select Date and Time</h2>
+                        
+                                                <div className="mb-4">
+                                                    <label className="block text-lg font-medium mb-2">From:</label>
+                                                    <div>
+                                                        <DatePicker
+                                                            selected={fromDate}
+                                                            onChange={(date) => setFromDate(date)}
+                                                            showTimeSelect
+                                                            dateFormat="yyyy-MM-dd HH:mm"
+                                                            withPortal
+                                                            className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                        />
+                                                    </div>
+                                                </div>
+                        
+                                                <div className="mb-4">
+                                                    <label className="block text-lg font-medium mb-2">To:</label>
+                                                    <div>
+                                                        <DatePicker
+                                                            selected={toDate}
+                                                            onChange={(date) => setToDate(date)}
+                                                            showTimeSelect
+                                                            dateFormat="yyyy-MM-dd HH:mm"
+                                                            withPortal
+                                                            className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                        />
+                                                    </div>
+                                                </div>
+                        <div className="flex justify-between gap-4">
+                            <button
+                                className="btn btn-secondary w-full sm:w-auto bg-gray-400 text-white py-2 px-4 rounded-md hover:bg-gray-500 transition-all duration-300"
+                                onClick={() => setShowModal(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="w-full sm:w-auto bg-indigo-700 text-white py-2 px-4 rounded-md hover:bg-indigo-600 transition-all duration-300"
+                                onClick={downloadFlowData}
+                            >
+                                Download
+                            </button>
+
                         </div>
-                        <label>To:</label>
-                        <div style={{ marginBottom: '10px', border: '1px solid #ccc', borderRadius: '5px' }}>
-                            <DatePicker
-                                selected={toDate}
-                                onChange={(date) => setToDate(date)}
-                                showTimeSelect
-                                dateFormat="yyyy-MM-dd HH:mm"
-                                withPortal
-                            />
-                        </div>
-                        <button className="btn btn-primary mt-3" onClick={downloadFlowData}>Download Data</button>
-                        <button className="btn btn-secondary mt-3" onClick={() => setShowModal(false)}>Close</button>
                     </div>
                 </div>
             )

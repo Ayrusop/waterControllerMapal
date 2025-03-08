@@ -16,7 +16,7 @@ const ControlValve = () => {
     const [selectedValve, setSelectedValve] = useState(null);
     const [fromDate, setFromDate] = useState(new Date());
     const [toDate, setToDate] = useState(new Date());
-
+    const [loading, setLoading] = useState(false);
     useEffect(() => {
         // Fetch data from API
         const fetchData = async () => {
@@ -105,6 +105,7 @@ const ControlValve = () => {
     };
     const sendCommand = async (valve, command) => {
         try {
+            setLoading(true);
             await axios.post(`${BASE_URL}/send-command`, {
                 valve,
                 command,
@@ -112,6 +113,8 @@ const ControlValve = () => {
             console.log(`Command sent: ${valve} -> ${command}`);
         } catch (error) {
             console.error("Error sending command:", error);
+        } finally {
+            setTimeout(() => setLoading(false), 10000); // Hide loading after 5 seconds
         }
     };
     const renderValve = (title, valve, key) => {
@@ -202,6 +205,14 @@ const ControlValve = () => {
 
     return (
         <div className='container text-center'>
+            {loading && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="p-6 bg-white rounded-lg shadow-lg flex flex-col items-center">
+                        <div className="loader"></div>
+                        <p className="text-lg font-medium mt-4">Processing...</p>
+                    </div>
+                </div>
+            )}
             <h1 className='bg-gradient-to-r from-primary to-black bg-clip-text text-transparent text-5xl'><b>Control Valve Status</b></h1>
             <div className="row">
                 {renderValve("Rainwater Inlet", valveData.rainwaterInlet, "rainwaterInlet")}
@@ -210,33 +221,55 @@ const ControlValve = () => {
             </div>
 
             {modalOpen && (
-                <div className="modal-overlay">
-                    <div className="modal">
-                        <h2>Select Date and Time</h2>
-                        <label>From:</label>
-                        <DatePicker
-                            selected={fromDate}
-                            onChange={(date) => setFromDate(date)}
-                            showTimeSelect
-                            dateFormat="yyyy-MM-dd HH:mm"
-                            withPortal
-                        />
-                        <label>To:</label>
-                        <DatePicker
-                            selected={toDate}
-                            onChange={(date) => setToDate(date)}
-                            showTimeSelect
-                            dateFormat="yyyy-MM-dd HH:mm"
-                            withPortal  
-                        />
-                        <button className="btn btn-primary mt-3" onClick={downloadData}>
-                            Download
-                        </button>
-                        <button className="btn btn-secondary mt-3" onClick={() => setModalOpen(false)}>
-                            Cancel
-                        </button>
-                    </div>
-                </div>
+                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                                    <div className="bg-white p-6 rounded-lg shadow-lg w-1/3 text-center">
+                                        <h2 className="text-2xl font-semibold text-center mb-4">Select Date and Time</h2>
+                
+                                        <div className="mb-4">
+                                            <label className="block text-lg font-medium mb-2">From:</label>
+                                            <div>
+                                                <DatePicker
+                                                    selected={fromDate}
+                                                    onChange={(date) => setFromDate(date)}
+                                                    showTimeSelect
+                                                    dateFormat="yyyy-MM-dd HH:mm"
+                                                    withPortal
+                                                    className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                />
+                                            </div>
+                                        </div>
+                
+                                        <div className="mb-4">
+                                            <label className="block text-lg font-medium mb-2">To:</label>
+                                            <div>
+                                                <DatePicker
+                                                    selected={toDate}
+                                                    onChange={(date) => setToDate(date)}
+                                                    showTimeSelect
+                                                    dateFormat="yyyy-MM-dd HH:mm"
+                                                    withPortal
+                                                    className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                />
+                                            </div>
+                                        </div>
+                
+                                        <div className="flex justify-between gap-4">
+                                            <button
+                                                className="btn btn-secondary w-full sm:w-auto bg-gray-400 text-white py-2 px-4 rounded-md hover:bg-gray-500 transition-all duration-300"
+                                                onClick={() => setModalOpen(false)}
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                className="w-full sm:w-auto bg-indigo-700 text-white py-2 px-4 rounded-md hover:bg-indigo-600 transition-all duration-300"
+                                                onClick={downloadData}
+                                            >
+                                                Download
+                                            </button>
+                                           
+                                        </div>
+                                    </div>
+                                </div>
             )}
         </div>
     );

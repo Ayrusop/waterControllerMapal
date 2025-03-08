@@ -10,7 +10,7 @@ const PumpSummary = () => {
         pumpA: { motorStatus: 'MF', mode: 'A' },
         pumpB: { motorStatus: 'MF', mode: 'A' },
     });
-
+        const [loading, setLoading] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedPump, setSelectedPump] = useState(null);
     const [fromDate, setFromDate] = useState(new Date());
@@ -43,17 +43,21 @@ const PumpSummary = () => {
         const interval = setInterval(fetchData, 5000);
         return () => clearInterval(interval);
     }, []);
-    const sendCommand = async (pump, command) => {
-        try {
-            await axios.post(`${BASE_URL}/send-command`, {
-                pump,
-                command,
-            });
-            console.log(`Command ${command} sent to ${pump}`);
-        } catch (error) {
-            console.error("Error sending command:", error);
-        }
-    };
+   const sendCommand = async (pump, command) => {
+           try {
+               setLoading(true); // Show loading overlay
+               await axios.post(`${BASE_URL}/send-command`, {
+                   pump,
+                   command,
+               });
+               console.log(`Command ${command} sent to ${pump}`);
+           } catch (error) {
+               console.error("Error sending command:", error);
+           } finally {
+               setTimeout(() => setLoading(false), 10000); // Hide loading after 5 seconds
+           }
+       };
+   
     const openDownloadModal = (pump) => {
         setSelectedPump(pump);
         setModalOpen(true);
@@ -118,6 +122,7 @@ const PumpSummary = () => {
         return (
             <div key={key} className="col">
                 <h2>{title}</h2>
+               
                 <div className='d-flex justify-content-center'>
                     <img src={pumpimg} alt={title} />
                     <div
@@ -138,7 +143,7 @@ const PumpSummary = () => {
                             fontSize: '16px',
                             fontWeight: 'bold',
                         }}
-                        onClick={() => sendCommand(title, isPumpA ? 'T' : 'D')}
+                        onClick={() => sendCommand(title, isOn ? (isPumpA ? 'T' : 'D') : (isPumpA ? 'S' : 'C'))}
                     >
                         <div
                             style={{
@@ -159,7 +164,7 @@ const PumpSummary = () => {
                                 justifyContent: 'center',
                                 alignItems: 'center',
                             }}
-                            
+
                         >
                             {isOn ? (
                                 <button >
@@ -167,15 +172,18 @@ const PumpSummary = () => {
                                     <div>N</div>
                                 </button>
                             ) : (
-                                <button onClick={() => sendCommand(title, isPumpA ? 'S' : 'C')}>
+                                <button >
                                     <div>O</div>
                                     <div>F</div>
                                     <div>F</div>
                                 </button>
                             )}
+                            {/* onClick={() => sendCommand(title, isPumpA ? 'T' : 'D')} */}
+                            {/* onClick={() => sendCommand(title, isPumpA ? 'S' : 'C')} */}
                         </div>
                     </div>
                 </div>
+        
                 <div className='mt-3'>
                     <button className={`m-2 p-3 rounded ${isAuto ? 'bg-gradient-to-r from-primary to-black text-white' : 'bg-secondary text-white'}`}
                         onClick={() => sendCommand(title, 'A')}
@@ -195,6 +203,14 @@ const PumpSummary = () => {
 
     return (
         <div className='container text-center'>
+            {loading && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="p-6 bg-white rounded-lg shadow-lg flex flex-col items-center">
+                        <div className="loader"></div>
+                        <p className="text-lg font-medium mt-4">Processing...</p>
+                    </div>
+                </div>
+            )}
             <h1 className='bg-gradient-to-r from-primary to-black bg-clip-text text-transparent text-5xl'><b>Pump Summary</b></h1>
             <div className="row">
                 {renderPump("Pump A", pumpData.pumpA, "pumpA")}
@@ -202,31 +218,52 @@ const PumpSummary = () => {
             </div>
 
             {modalOpen && (
-                <div className="modal-overlay">
-                    <div className="modal">
-                        <h2>Select Date and Time</h2>
-                        <label>From:</label>
-                        <DatePicker
-                            selected={fromDate}
-                            onChange={(date) => setFromDate(date)}
-                            showTimeSelect
-                            dateFormat="yyyy-MM-dd HH:mm"
-                            withPortal
-                        />
-                        <label>To:</label>
-                        <DatePicker
-                            selected={toDate}
-                            onChange={(date) => setToDate(date)}
-                            showTimeSelect
-                            dateFormat="yyyy-MM-dd HH:mm"
-                            withPortal
-                        />
-                        <button className="btn btn-primary mt-3" onClick={downloadData}>
-                            Download
-                        </button>
-                        <button className="btn btn-secondary mt-3" onClick={() => setModalOpen(false)}>
-                            Cancel
-                        </button>
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-1/3 text-center">
+                        <h2 className="text-2xl font-semibold text-center mb-4">Select Date and Time</h2>
+
+                        <div className="mb-4">
+                            <label className="block text-lg font-medium mb-2">From:</label>
+                            <div>
+                                <DatePicker
+                                    selected={fromDate}
+                                    onChange={(date) => setFromDate(date)}
+                                    showTimeSelect
+                                    dateFormat="yyyy-MM-dd HH:mm"
+                                    withPortal
+                                    className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="block text-lg font-medium mb-2">To:</label>
+                            <div>
+                                <DatePicker
+                                    selected={toDate}
+                                    onChange={(date) => setToDate(date)}
+                                    showTimeSelect
+                                    dateFormat="yyyy-MM-dd HH:mm"
+                                    withPortal
+                                    className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex justify-between gap-4">
+                            <button
+                                className="btn btn-secondary w-full sm:w-auto bg-gray-400 text-white py-2 px-4 rounded-md hover:bg-gray-500 transition-all duration-300"
+                                onClick={() => setModalOpen(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="w-full sm:w-auto bg-indigo-700 text-white py-2 px-4 rounded-md hover:bg-indigo-600 transition-all duration-300"
+                                onClick={downloadData}
+                            >
+                                Download
+                            </button>
+
+                        </div>
                     </div>
                 </div>
             )}

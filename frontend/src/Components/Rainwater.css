@@ -77,38 +77,12 @@
 .water-tank .indicator[data-value="75"] {
     bottom: 75%;
 }
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* Dimmed background */
-    display: block !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000; /* Ensures it's on top */
-}
+
 .react-datepicker-popper {
     z-index: 1050 !important; /* Ensure it's above the modal */
 }
 
-.modal {
-    background: rgb(255, 255, 255);
-    padding: 20px;
-    justify-content: center !important;
-    align-items: end !important;
-    border-radius: 10px;
-    width: 400px;
-    max-width: 90%;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    z-index: 1001; /* Higher than overlay */
-    text-align: center;
-    overflow: auto !important;
-    display: block !important;
-}
+
 .react-datepicker {
     opacity: 1 !important;
     visibility: visible !important;

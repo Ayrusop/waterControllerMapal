@@ -19,7 +19,7 @@ const Login = ({ setAuth }) => {
     };
 
     return (
-        <div className="flex items-center justify-center  bg-gray-100">
+        <div className="flex items-center justify-center mt-5">
             <div className="w-full max-w-md bg-white shadow-lg rounded-xl p-8">
                 <h2 className="text-2xl font-semibold text-center text-gray-700">Login</h2>
                 {error && <p className="text-red-500 text-center mt-2">{error}</p>}

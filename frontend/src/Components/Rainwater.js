@@ -3,7 +3,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import * as XLSX from "xlsx";
 import axios from "axios";
-import "./Rainwater.css";
+// import "./Rainwater.css";
 import moment from "moment";
 
 const Rainwater = () => {
@@ -242,38 +242,58 @@ const Rainwater = () => {
             </div>
 
             {modalOpen && (
-                <div className="modal-overlay">
-                    <div className="modal">
-                        <h2>Select Date and Time</h2>
-                        <label>From:</label>
-                        <div>
-                            <DatePicker
-                                selected={fromDate}
-                                onChange={(date) => setFromDate(date)}
-                                showTimeSelect
-                                dateFormat="yyyy-MM-dd HH:mm"
-                                withPortal
-                            />
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-1/3 text-center">
+                        <h2 className="text-2xl font-semibold text-center mb-4">Select Date and Time</h2>
+
+                        <div className="mb-4">
+                            <label className="block text-lg font-medium mb-2">From:</label>
+                            <div>
+                                <DatePicker
+                                    selected={fromDate}
+                                    onChange={(date) => setFromDate(date)}
+                                    showTimeSelect
+                                    dateFormat="yyyy-MM-dd HH:mm"
+                                    withPortal
+                                    className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
                         </div>
-                        <label>To:</label>
-                        <div>
-                            <DatePicker
-                                selected={toDate}
-                                onChange={(date) => setToDate(date)}
-                                showTimeSelect
-                                dateFormat="yyyy-MM-dd HH:mm"
-                                withPortal
-                            />
+
+                        <div className="mb-4">
+                            <label className="block text-lg font-medium mb-2">To:</label>
+                            <div>
+                                <DatePicker
+                                    selected={toDate}
+                                    onChange={(date) => setToDate(date)}
+                                    showTimeSelect
+                                    dateFormat="yyyy-MM-dd HH:mm"
+                                    withPortal
+                                    className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
                         </div>
-                        <button className="btn btn-primary mt-3" onClick={downloadData}>
-                            Download
-                        </button>
-                        <button className="btn btn-secondary mt-3" onClick={() => setModalOpen(false)}>
-                            Cancel
-                        </button>
+
+                        <div className="flex justify-between gap-4">
+                            <button
+                                className="btn btn-secondary w-full sm:w-auto bg-gray-400 text-white py-2 px-4 rounded-md hover:bg-gray-500 transition-all duration-300"
+                                onClick={() => setModalOpen(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="w-full sm:w-auto bg-indigo-700 text-white py-2 px-4 rounded-md hover:bg-indigo-600 transition-all duration-300"
+                                onClick={downloadData}
+                            >
+                                Download
+                            </button>
+                           
+                        </div>
                     </div>
                 </div>
+
             )}
+            
         </div>
     );
 };

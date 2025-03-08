@@ -34,4 +34,17 @@ background: linear-gradient(349deg, rgba(27,103,99,1) 0%, rgba(54,205,197,1) 100
     }
   }
   
-  
+  .loader {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
