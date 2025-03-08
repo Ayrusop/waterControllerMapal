@@ -68,14 +68,14 @@ const ControlValve = () => {
             const formattedFrom = moment(fromDate).format("YYYY-MM-DD HH:mm");
             const formattedTo = moment(toDate).format("YYYY-MM-DD HH:mm");
 
-            const response = await axios.get(`${BASE_URL}/get-latest-data`, {
+            const response = await axios.get(`${BASE_URL}/get-data-range`, {
                 params: {
                     from: formattedFrom,
                     to: formattedTo,
                     tank: mappedValve,
                 },
             });
-
+            console.log(response)
             if (response.status === 200) {
                 const data = response.data;
                 console.log("Data received for download:", data);
@@ -84,7 +84,7 @@ const ControlValve = () => {
                     const sheetData = data.map((entry) => ({
                         Timestamp: entry.timestamp,
                         Status: entry.status.endsWith('N') ? 'Valve ON' : 'Valve OFF',
-                        Mode: entry.mode === 'A' ? 'Automatic' : 'Manual',
+                        Mode: entry.mode === 'A' ? 'Automatic' : 'Manual' || null,
                     }));
 
                     const headers = ["Timestamp", "Status", "Mode"];
@@ -110,9 +110,9 @@ const ControlValve = () => {
                 valve,
                 command,
             });
-            console.log(`Command sent: ${valve} -> ${command}`);
+            // console.log(`Command sent: ${valve} -> ${command}`);
         } catch (error) {
-            console.error("Error sending command:", error);
+            // console.error("Error sending command:", error);
         } finally {
             setTimeout(() => setLoading(false), 10000); // Hide loading after 5 seconds
         }

@@ -142,15 +142,15 @@ const Rainwater = () => {
                     const headers = ["Time", "Percentage", "Liters"];
                     const sheetData = data.map((entry) => {
                         // Ensure that data aligns correctly regardless of whether it's a single tank or combined
-                        let time = moment(entry[0]).format("YYYY-MM-DD HH:mm"); // Formatting the timestamp into a readable format
+                        let time = entry.timestamp; // Formatting the timestamp into a readable format
                         let percentage = entry.percentage;
                         let liters = entry.liters;
 
-                        if (entry.length > 3) {
-                            // If there are additional columns, adjust as needed
-                            percentage = entry.entry.percentage;
-                            liters = entry.entry.percentage;
-                        }
+                        // if (entry.length > 3) {
+                        //     // If there are additional columns, adjust as needed
+                        //     percentage = entry.entry.percentage;
+                        //     liters = entry.entry.percentage;
+                        // }
 
                         return {
                             Time: time,

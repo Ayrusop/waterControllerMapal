@@ -30,6 +30,7 @@ const Home = () => {
                         <h3 className='text-white p-3'>Water Control Valve <i class="fa fa-arrow-circle-right ml-5" aria-hidden="true"></i></h3>
                     </Link>
                 </div>
+
             </div>
         </div>
     );
