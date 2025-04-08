@@ -167,7 +167,7 @@ const Rainwater = () => {
                     // Generate and download the Excel file
                     XLSX.writeFile(workbook, `${mappedTank}_Data_${formattedFrom}_${formattedTo}.xlsx`);
                 } else {
-                    console.error("No data available for the selected range.");
+                    alert("No data available for the selected range.");
                 }
             } else {
                 console.error("Error fetching tank data:", response.status, response.statusText);

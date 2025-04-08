@@ -110,7 +110,7 @@ const FlowDischarge = () => {
                 XLSX.utils.book_append_sheet(workbook, worksheet, "Flow Data");
                 XLSX.writeFile(workbook, "Flow_Data.xlsx");
             } else {
-                console.error("No data available for the selected range.");
+                alert("No data available for the selected range.");
             }
         } catch (error) {
             console.error("Error downloading flow data:", error);

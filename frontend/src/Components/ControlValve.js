@@ -94,7 +94,7 @@ const ControlValve = () => {
 
                     XLSX.writeFile(workbook, `${selectedValve}_Data.xlsx`);
                 } else {
-                    console.error("No data available for the selected range.");
+                    alert("No data available for the selected range.");
                 }
             } else {
                 console.error("Error fetching valve data:", response.status, response.statusText);

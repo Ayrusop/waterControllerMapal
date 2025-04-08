@@ -104,7 +104,7 @@ const PumpSummary = () => {
 
                     XLSX.writeFile(workbook, `${selectedPump}_Data.xlsx`);
                 } else {
-                    console.error("No data available for the selected range.");
+                    alert("No data available for the selected range.");
                 }
             } else {
                 console.error("Error fetching pump data:", response.status, response.statusText);
