@@ -7,7 +7,7 @@ const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 
 // Serial port configuration
-const serialPortPath = 'COM4'; ///dev/ttyACM0
+const serialPortPath = '/dev/ttyACM0'; //COM4
 const baudRate = 9600;
 const httpPort = 5000;
 const wsPort = 8080;
@@ -443,10 +443,10 @@ port.on('error', (err) => {
   console.error('Serial port error:', err.message);
 });
 
-// app.use(express.static(path.join(__dirname, 'frontend', 'build')));
-// app.get('*', (req, res) => {
-//   res.sendFile(path.join(__dirname, 'frontend', 'build', 'index.html'));
-// });
+app.use(express.static(path.join(__dirname, 'frontend', 'build')));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'build', 'index.html'));
+});
 
 app.listen(httpPort,'0.0.0.0', () => {
   console.log(`HTTP server running on ${httpPort}`);
