@@ -7,7 +7,7 @@ const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 
 // Serial port configuration
-const serialPortPath = 'COM4';
+const serialPortPath = 'COM4'; ///dev/ttyACM0
 const baudRate = 9600;
 const httpPort = 5000;
 const wsPort = 8080;
@@ -212,6 +212,8 @@ app.get('/get-latest-data', (req, res) => {
   }
 });
 // get range data
+
+
 app.get("/get-data-range", (req, res) => {
   try {
     const { from, to, tank } = req.query;
@@ -289,7 +291,33 @@ app.get("/get-data-range", (req, res) => {
             liters: entry.litersSum, // Total liters
           }));
 
-          return res.json(finalData.length > 0 ? finalData : { message: "No data found in the given range" });
+          if (finalData.length > 0) {
+            return res.json(finalData);
+          } else {
+            // Fetch the next available entry after 'from' time
+            let nextEntryQueryTank1 = `SELECT * FROM Tank1 WHERE timestamp > ? ORDER BY timestamp ASC LIMIT 1`;
+            let nextEntryQueryTank2 = `SELECT * FROM Tank2 WHERE timestamp > ? ORDER BY timestamp ASC LIMIT 1`;
+
+            db.get(nextEntryQueryTank1, [fromTime.format("D/M/YYYY, h:mm:ss A")], (err, nextTank1Row) => {
+              if (err) {
+                console.error("Database error (Tank1):", err);
+                return res.status(500).json({ error: "Internal server error" });
+              }
+
+              db.get(nextEntryQueryTank2, [fromTime.format("D/M/YYYY, h:mm:ss A")], (err, nextTank2Row) => {
+                if (err) {
+                  console.error("Database error (Tank2):", err);
+                  return res.status(500).json({ error: "Internal server error" });
+                }
+
+                if (nextTank1Row || nextTank2Row) {
+                  return res.json([nextTank1Row, nextTank2Row].filter(Boolean));
+                } else {
+                  return res.json({ message: "No data found in the given range" });
+                }
+              });
+            });
+          }
         });
       });
     } else {
@@ -306,9 +334,9 @@ app.get("/get-data-range", (req, res) => {
         if (rows.length > 0) {
           return res.json(rows);
         } else {
-          // Fetch the next available entry after 'to' time if no data found
+          // Fetch the next available entry after 'from' time
           let nextEntryQuery = `SELECT * FROM ${tank} WHERE timestamp > ? ORDER BY timestamp ASC LIMIT 1`;
-          db.get(nextEntryQuery, [toTime.format("D/M/YYYY, h:mm:ss A")], (err, nextRow) => {
+          db.get(nextEntryQuery, [fromTime.format("D/M/YYYY, h:mm:ss A")], (err, nextRow) => {
             if (err) {
               console.error("Database error:", err);
               return res.status(500).json({ error: "Internal server error" });
@@ -328,6 +356,8 @@ app.get("/get-data-range", (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+
 app.get('/get-data-range-flow', (req, res) => {
   try {
     const { from, to, tank } = req.query;
@@ -413,10 +443,10 @@ port.on('error', (err) => {
   console.error('Serial port error:', err.message);
 });
 
-app.use(express.static(path.join(__dirname, 'frontend', 'build')));
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'build', 'index.html'));
-});
+// app.use(express.static(path.join(__dirname, 'frontend', 'build')));
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, 'frontend', 'build', 'index.html'));
+// });
 
 app.listen(httpPort,'0.0.0.0', () => {
   console.log(`HTTP server running on ${httpPort}`);

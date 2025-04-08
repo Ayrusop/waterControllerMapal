@@ -91,7 +91,7 @@ const Rainwater = () => {
                         setLastHarvestingDate(moment().format("YYYY-MM-DD"));
                     }
 
-                    // console.log(`Last harvesting difference: ${lastHarvesting} Liters`);
+                    console.log(`Last harvesting difference: ${lastHarvesting} Liters`);
                     return lastHarvesting;
                 }
             }

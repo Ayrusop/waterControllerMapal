@@ -120,8 +120,8 @@ const ControlValve = () => {
     const renderValve = (title, valve, key) => {
         const isOn = valve.status.endsWith('N');
         const isAuto = valve.mode === 'A';
-        const updatedTitle = title === "Rainwater Inlet" ? "Rainwater Tank Inlet Valve" :
-            title === "Borewell" ? "Borewell Inlet Valve" :
+        const updatedTitle = title === "Rainwater Inlet" ? "Rainwater Tank Outlet Valve (to Irrigation)" :
+            title === "Borewell" ? "Borewell Outlet Valve (to Irridation)" :
                 title === "Rainwater Drain" ? "Rainwater Collection Drain Valve" : title;
         return (
             <div key={key} className="col mt-5">
@@ -213,7 +213,7 @@ const ControlValve = () => {
                     </div>
                 </div>
             )}
-            <h1 className='bg-gradient-to-r from-primary to-black bg-clip-text text-transparent text-5xl'><b>Control Valve Status</b></h1>
+            <h1 className='bg-gradient-to-r from-primary to-black bg-clip-text text-transparent text-5xl'><b>Control Valves</b></h1>
             <div className="row">
                 {renderValve("Rainwater Inlet", valveData.rainwaterInlet, "rainwaterInlet")}
                 {renderValve("Borewell", valveData.borewell, "borewell")}
