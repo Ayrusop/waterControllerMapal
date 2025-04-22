@@ -7,7 +7,7 @@ const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 
 // Serial port configuration
-const serialPortPath = 'COM4'; //COM4
+const serialPortPath = '/dev/ttyACM0'; //COM4
 const baudRate = 9600;
 const httpPort = 5000;
 const wsPort = 8080;
