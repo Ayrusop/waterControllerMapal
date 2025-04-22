@@ -7,12 +7,12 @@ const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 
 // Serial port configuration
-const serialPortPath = '/dev/ttyACM0'; //COM4
+const serialPortPath = 'COM4'; //COM4
 const baudRate = 9600;
 const httpPort = 5000;
 const wsPort = 8080;
 const dbFile = 'data.db';
-const moment = require('moment');
+const moment = require('moment-timezone');
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -64,18 +64,17 @@ db.serialize(() => {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     timestamp TEXT,
     status TEXT,
-    mode TEXT  -- Added mode column
+    mode TEXT
   )`);
 
   db.run(`CREATE TABLE IF NOT EXISTS RainwaterDrain (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     timestamp TEXT,
     status TEXT,
-    mode TEXT  -- Added mode column
+    mode TEXT
   )`);
 });
-
-// Initialize SerialPort
+// Open serial port
 const port = new SerialPort({ path: serialPortPath, baudRate }, (err) => {
   if (err) {
     console.error(`Failed to open serial port ${serialPortPath}:`, err.message);
@@ -84,12 +83,13 @@ const port = new SerialPort({ path: serialPortPath, baudRate }, (err) => {
   console.log(`Serial port ${serialPortPath} opened successfully`);
 });
 
+
 const parser = port.pipe(new ReadlineParser({ delimiter: '\n' }));
 const wss = new WebSocket.Server({ port: wsPort });
 console.log(`WebSocket server running on ws://localhost:${wsPort}`);
 
 const getTimestampIST = () => {
-  return new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+  return moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 };
 
 // console.log(getTimestampIST());
@@ -168,7 +168,7 @@ app.get('/get-latest-data', (req, res) => {
     let queriesCompleted = 0;
 
     tables.forEach((table) => {
-      db.get(`SELECT * FROM ${table} ORDER BY timestamp DESC LIMIT 1`, [], (err, row) => {
+      db.get(`SELECT * FROM ${table} ORDER BY id DESC LIMIT 1`, [], (err, row) => {
         if (err) {
           console.error(`Error fetching latest data from ${table}:`, err);
           latestData[table] = { error: 'Error fetching data' };
@@ -220,27 +220,20 @@ app.get("/get-data-range", (req, res) => {
     console.log("Request received:", from, to, tank);
 
     if (!from || !to || !tank) {
-      return res
-        .status(400)
-        .json({ error: "Missing required query parameters: from, to, or tank" });
+      return res.status(400).json({ error: "Missing required query parameters: from, to, or tank" });
     }
 
-    // Convert 'from' and 'to' to IST-based moment objects
-    const fromTime = moment(from, "YYYY-MM-DD HH:mm", true);
-    const toTime = moment(to, "YYYY-MM-DD HH:mm", true);
+    const fromTime = moment.tz(from, "YYYY-MM-DD HH:mm", "Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+    const toTime = moment.tz(to, "YYYY-MM-DD HH:mm", "Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
-    if (!fromTime.isValid() || !toTime.isValid()) {
-      return res
-        .status(400)
-        .json({ error: "Invalid date format. Use YYYY-MM-DD HH:mm" });
+    if (!moment(fromTime, "YYYY-MM-DD HH:mm:ss", true).isValid() || !moment(toTime, "YYYY-MM-DD HH:mm:ss", true).isValid()) {
+      return res.status(400).json({ error: "Invalid date format. Use YYYY-MM-DD HH:mm" });
     }
 
     if (tank.toUpperCase() === "TOTAL") {
-      // Fetch data for both tanks
       let queryTank1 = `SELECT * FROM Tank1 WHERE timestamp >= ? AND timestamp <= ? ORDER BY timestamp ASC`;
       let queryTank2 = `SELECT * FROM Tank2 WHERE timestamp >= ? AND timestamp <= ? ORDER BY timestamp ASC`;
-
-      let params = [fromTime.format("D/M/YYYY, h:mm:ss A"), toTime.format("D/M/YYYY, h:mm:ss A")];
+      let params = [fromTime, toTime];
 
       db.all(queryTank1, params, (err, tank1Rows) => {
         if (err) {
@@ -256,7 +249,6 @@ app.get("/get-data-range", (req, res) => {
 
           let combinedData = {};
 
-          // Process Tank1 data
           tank1Rows.forEach((entry) => {
             combinedData[entry.timestamp] = {
               timestamp: entry.timestamp,
@@ -266,15 +258,12 @@ app.get("/get-data-range", (req, res) => {
             };
           });
 
-          // Process Tank2 data
           tank2Rows.forEach((entry) => {
             if (combinedData[entry.timestamp]) {
-              // If timestamp exists, add values
               combinedData[entry.timestamp].percentageSum += entry.percentage;
               combinedData[entry.timestamp].litersSum += entry.liters;
               combinedData[entry.timestamp].count += 1;
             } else {
-              // If timestamp does not exist, create new entry
               combinedData[entry.timestamp] = {
                 timestamp: entry.timestamp,
                 percentageSum: entry.percentage,
@@ -284,46 +273,34 @@ app.get("/get-data-range", (req, res) => {
             }
           });
 
-          // Format the combined data
-          let finalData = Object.values(combinedData).map((entry) => ({
+          const finalData = Object.values(combinedData).map((entry) => ({
             timestamp: entry.timestamp,
-            percentage: (entry.percentageSum / entry.count).toFixed(2), // Average percentage
-            liters: entry.litersSum, // Total liters
+            percentage: (entry.percentageSum / entry.count).toFixed(2),
+            liters: entry.litersSum,
           }));
 
           if (finalData.length > 0) {
             return res.json(finalData);
-          } else {
-            // Fetch the next available entry after 'from' time
-            let nextEntryQueryTank1 = `SELECT * FROM Tank1 WHERE timestamp > ? ORDER BY timestamp ASC LIMIT 1`;
-            let nextEntryQueryTank2 = `SELECT * FROM Tank2 WHERE timestamp > ? ORDER BY timestamp ASC LIMIT 1`;
-
-            db.get(nextEntryQueryTank1, [fromTime.format("D/M/YYYY, h:mm:ss A")], (err, nextTank1Row) => {
-              if (err) {
-                console.error("Database error (Tank1):", err);
-                return res.status(500).json({ error: "Internal server error" });
-              }
-
-              db.get(nextEntryQueryTank2, [fromTime.format("D/M/YYYY, h:mm:ss A")], (err, nextTank2Row) => {
-                if (err) {
-                  console.error("Database error (Tank2):", err);
-                  return res.status(500).json({ error: "Internal server error" });
-                }
-
-                if (nextTank1Row || nextTank2Row) {
-                  return res.json([nextTank1Row, nextTank2Row].filter(Boolean));
-                } else {
-                  return res.json({ message: "No data found in the given range" });
-                }
-              });
-            });
           }
+
+          // Fallback if no data
+          let nextTank1Query = `SELECT * FROM Tank1 WHERE timestamp > ? ORDER BY timestamp ASC LIMIT 1`;
+          let nextTank2Query = `SELECT * FROM Tank2 WHERE timestamp > ? ORDER BY timestamp ASC LIMIT 1`;
+
+          db.get(nextTank1Query, [fromTime], (err, next1) => {
+            if (err) return res.status(500).json({ error: "Internal server error" });
+
+            db.get(nextTank2Query, [fromTime], (err, next2) => {
+              if (err) return res.status(500).json({ error: "Internal server error" });
+
+              return res.json([next1, next2].filter(Boolean));
+            });
+          });
         });
       });
     } else {
-      // Query for a single tank
       let query = `SELECT * FROM ${tank} WHERE timestamp >= ? AND timestamp <= ? ORDER BY timestamp ASC`;
-      let params = [fromTime.format("D/M/YYYY, h:mm:ss A"), toTime.format("D/M/YYYY, h:mm:ss A")];
+      let params = [fromTime, toTime];
 
       db.all(query, params, (err, rows) => {
         if (err) {
@@ -333,29 +310,26 @@ app.get("/get-data-range", (req, res) => {
 
         if (rows.length > 0) {
           return res.json(rows);
-        } else {
-          // Fetch the next available entry after 'from' time
-          let nextEntryQuery = `SELECT * FROM ${tank} WHERE timestamp > ? ORDER BY timestamp ASC LIMIT 1`;
-          db.get(nextEntryQuery, [fromTime.format("D/M/YYYY, h:mm:ss A")], (err, nextRow) => {
-            if (err) {
-              console.error("Database error:", err);
-              return res.status(500).json({ error: "Internal server error" });
-            }
-
-            if (nextRow) {
-              return res.json([nextRow]); // Return the next closest timestamp
-            } else {
-              return res.json({ message: "No data found in the given range" });
-            }
-          });
         }
+
+        let nextQuery = `SELECT * FROM ${tank} WHERE timestamp > ? ORDER BY timestamp ASC LIMIT 1`;
+        db.get(nextQuery, [fromTime], (err, nextRow) => {
+          if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json({ error: "Internal server error" });
+          }
+
+          if (nextRow) return res.json([nextRow]);
+          return res.json({ message: "No data found in the given range" });
+        });
       });
     }
   } catch (error) {
     console.error("Error fetching data:", error);
-    res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 
 app.get('/get-data-range-flow', (req, res) => {
